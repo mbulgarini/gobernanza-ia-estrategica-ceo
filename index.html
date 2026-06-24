@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gobernanza de IA Estratégica · Rosetta Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #04091a;
+  --lime:    #b8ff00;
+  --cyan:    #00e5ff;
+  --amber:   #f5b400;
+  --red:     #ff3c3c;
+  --mint:    #00ffaa;
+  --text:    #eaeff6;
+  --muted:   #7a90a8;
+  --card:    rgba(255,255,255,0.03);
+  --border:  rgba(255,255,255,0.07);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}
+.mono{font-family:'IBM Plex Mono',monospace}
+.display{font-family:'Bebas Neue',cursive;letter-spacing:0.04em}
+
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(184,255,0,0.02) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(184,255,0,0.02) 1px,transparent 1px);
+  background-size:48px 48px;z-index:0;pointer-events:none}
+
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .5s ease,transform .5s ease,visibility .5s;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding-bottom:5rem;z-index:1}
+.slide.active{opacity:1;visibility:visible;transform:translateY(0);z-index:2}
+.s-inner{width:100%;max-width:1180px;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2.5rem);
+  margin-top:auto;margin-bottom:auto}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px}
+.card-lime{border-color:rgba(184,255,0,0.2);box-shadow:0 0 24px rgba(184,255,0,0.05)}
+.card-cyan{border-color:rgba(0,229,255,0.2);box-shadow:0 0 24px rgba(0,229,255,0.05)}
+.card-amber{border-color:rgba(245,180,0,0.3);box-shadow:0 0 24px rgba(245,180,0,0.08)}
+.card-red {border-color:rgba(255,60,60,0.25);box-shadow:0 0 24px rgba(255,60,60,0.06)}
+
+.lime{color:var(--lime)} .cyan{color:var(--cyan)} .amber{color:var(--amber)} .red{color:var(--red)} .mint{color:var(--mint)}
+.tag{display:inline-flex;align-items:center;gap:.4rem;font-family:'IBM Plex Mono',monospace;
+     font-size:.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+     padding:.25rem .6rem;border-radius:2px}
+.tag-lime{background:rgba(184,255,0,.08);border:1px solid rgba(184,255,0,.3);color:var(--lime)}
+.tag-cyan{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.3);color:var(--cyan)}
+.tag-amber{background:rgba(245,180,0,.1);border:1px solid rgba(245,180,0,.4);color:var(--amber)}
+.tag-red {background:rgba(255,60,60,.08); border:1px solid rgba(255,60,60,.3); color:var(--red)}
+.tag-muted{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#7a8fa8}
+
+.s-label{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;
+         text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.num{font-family:'Bebas Neue',cursive;font-size:2rem;color:var(--lime);opacity:.7;line-height:1}
+.cite{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:#4a5a6e;letter-spacing:.04em}
+
+@keyframes hashScroll{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+.hash-bg{position:fixed;inset:0;overflow:hidden;z-index:0;opacity:.025;pointer-events:none;
+         font-family:'IBM Plex Mono',monospace;font-size:.55rem;line-height:1.6;
+         color:var(--lime);word-break:break-all;white-space:pre-wrap}
+.hash-inner{animation:hashScroll 40s linear infinite}
+
+@keyframes scan{0%{top:-4px}100%{top:100%}}
+.scan-line{position:fixed;left:0;width:100%;height:4px;
+           background:linear-gradient(transparent,rgba(184,255,0,.06),transparent);
+           animation:scan 8s linear infinite;z-index:0;pointer-events:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.slide.active .anim{animation:fadeUp .55s ease forwards}
+.slide.active .anim-d1{animation-delay:.1s;opacity:0}
+.slide.active .anim-d2{animation-delay:.25s;opacity:0}
+.slide.active .anim-d3{animation-delay:.4s;opacity:0}
+.slide.active .anim-d4{animation-delay:.55s;opacity:0}
+.slide.active .anim-d5{animation-delay:.7s;opacity:0}
+
+#nav-bar{position:fixed;bottom:0;left:0;right:0;z-index:50;
+  padding:.75rem clamp(.75rem,3vw,1.5rem);
+  background:linear-gradient(to top,rgba(4,9,26,.98) 60%,transparent);
+  display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.nav-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:#7a8fa8;border-radius:2px;cursor:pointer;
+  min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;font-size:1rem}
+.nav-btn:hover{border-color:var(--lime);color:var(--lime)}
+.nav-btn:disabled{opacity:.25;cursor:not-allowed}
+#slide-counter{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);
+  min-width:3rem;text-align:center;letter-spacing:.1em}
+#dots-wrap{display:flex;gap:.375rem;align-items:center;flex-wrap:wrap;justify-content:center}
+.dot{width:6px;height:6px;border-radius:9999px;background:#1e2d40;border:none;
+  cursor:pointer;transition:all .3s;padding:0;min-width:0;min-height:0}
+.dot.active{width:20px;border-radius:3px;background:var(--lime)}
+
+#float-btn{position:fixed;bottom:4.5rem;left:50%;transform:translateX(-50%) translateY(16px);
+  opacity:0;pointer-events:none;transition:all .3s;z-index:45;white-space:nowrap;
+  background:rgba(184,255,0,.12);border:1px solid rgba(184,255,0,.35);color:var(--lime);
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:600;letter-spacing:.1em;
+  padding:.5rem 1rem;border-radius:2px;cursor:pointer;text-transform:uppercase}
+#float-btn.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+
+#btn-notes{background:rgba(184,255,0,.1);border:1px solid rgba(184,255,0,.35);color:var(--lime);
+  font-family:'IBM Plex Mono',monospace;font-size:.65rem;font-weight:700;letter-spacing:.08em;
+  padding:0 .9rem;min-height:44px;border-radius:2px;cursor:pointer;display:flex;
+  align-items:center;gap:.4rem;text-transform:uppercase;transition:all .2s}
+#btn-notes:hover{background:rgba(184,255,0,.18)}
+#notes-panel{position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:#070d1f;border-top:1px solid rgba(184,255,0,.3);
+  box-shadow:0 -20px 60px rgba(0,0,0,.7);
+  transform:translateY(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);
+  padding:1.25rem clamp(1rem,4vw,2rem) 5rem;max-height:55vh;overflow-y:auto}
+#notes-panel.open{transform:translateY(0)}
+#notes-panel .nl{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--lime);margin-bottom:.6rem;display:flex;
+  align-items:center;justify-content:space-between}
+#btn-close-notes{background:transparent;border:1px solid rgba(255,255,255,.15);color:#7a8fa8;
+  border-radius:2px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer}
+#speaker-notes-text{font-size:.92rem;line-height:1.75;color:#d4dce8;max-width:880px}
+
+.reg-table{width:100%;border-collapse:collapse}
+.reg-table th,.reg-table td{padding:.8rem 1rem;text-align:left;border-bottom:1px solid var(--border)}
+.reg-table th{font-family:'IBM Plex Mono',monospace;font-size:.62rem;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--muted);font-weight:400}
+.reg-table td{font-size:.82rem}
+.reg-table tr:last-child td{border-bottom:none}
+
+@media(max-width:640px){
+  .hide-sm{display:none!important}
+  .grid-2{grid-template-columns:1fr!important}
+  .grid-4{grid-template-columns:1fr 1fr!important}
+  .grid-3{grid-template-columns:1fr!important}
+  .vs-grid{grid-template-columns:1fr!important}
+  .vs-grid .display{transform:rotate(90deg);margin:.25rem auto}
+}
+</style>
+</head>
+<body>
+
+<div class="hash-bg" id="hash-bg"><div class="hash-inner" id="hash-inner"></div></div>
+<div class="scan-line"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 1 · PORTADA
+═══════════════════════════════════════════════════════════ -->
+<section class="slide active" id="s1" data-notes="Abro estableciendo el marco: esta no es una presentación de seguridad técnica, es una presentación de gobernanza corporativa. El Directorio y el CEO no necesitan entender criptografía — necesitan entender que la IA sin gobernanza es un pasivo contingente no declarado en el balance, y que existe una forma de eliminarlo sin frenar la innovación.">
+<div class="s-inner">
+
+  <div class="anim anim-d1" style="margin-bottom:1.75rem">
+    <svg width="200" height="40" viewBox="0 0 220 44" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="44" height="44" rx="3" fill="rgba(184,255,0,0.08)" stroke="#b8ff00" stroke-width="1"/>
+      <text x="22" y="30" text-anchor="middle" font-family="'Bebas Neue',cursive" font-size="22" fill="#b8ff00" letter-spacing="1">RL</text>
+      <text x="56" y="18" font-family="'Bebas Neue',cursive" font-size="20" fill="#ffffff" letter-spacing="2">ROSETTA</text>
+      <text x="56" y="38" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#b8ff00" letter-spacing="3">LABS</text>
+    </svg>
+  </div>
+
+  <span class="anim anim-d1 tag tag-amber" style="margin-bottom:1.5rem;width:fit-content">PROTOCOLO EAB-64 · GOBERNANZA CORPORATIVA</span>
+
+  <div style="margin:0 0 1.5rem" class="anim anim-d2">
+    <div class="display" style="font-size:clamp(2.3rem,8.5vw,6rem);color:#fff;line-height:1.02">
+      GOBERNANZA DE IA<br><span style="color:var(--lime)">ESTRATÉGICA.</span>
+    </div>
+  </div>
+
+  <p class="anim anim-d3" style="font-size:clamp(1rem,2.2vw,1.3rem);color:#9aafc8;max-width:700px;line-height:1.65;margin-bottom:2rem">
+    Maximizando el ROI, optimizando infraestructura y blindando el valor corporativo ante regulaciones globales — sin frenar la velocidad del negocio.
+  </p>
+
+  <div class="anim anim-d4 card card-amber" style="display:inline-flex;flex-wrap:wrap;align-items:center;gap:1.25rem;padding:1rem 1.5rem;max-width:fit-content;margin-bottom:2rem">
+    <div>
+      <div class="s-label" style="margin-bottom:.2rem">Sobrecosto Shadow AI</div>
+      <div class="display" style="font-size:1.7rem;color:var(--amber)">+US$670K</div>
+    </div>
+    <div style="width:1px;height:2.2rem;background:var(--border)" class="hide-sm"></div>
+    <div>
+      <div class="s-label" style="margin-bottom:.2rem">Latencia EAB-64</div>
+      <div class="display" style="font-size:1.7rem;color:#fff">&lt; 2ms</div>
+    </div>
+    <div style="width:1px;height:2.2rem;background:var(--border)" class="hide-sm"></div>
+    <div>
+      <div class="s-label" style="margin-bottom:.2rem">Evidencia Legal</div>
+      <div class="display" style="font-size:1.7rem;color:var(--lime)">100%</div>
+    </div>
+  </div>
+
+  <div class="anim anim-d5" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    <div style="width:46px;height:46px;border-radius:9999px;background:rgba(245,180,0,.1);border:1px solid rgba(245,180,0,.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem">👤</div>
+    <div>
+      <div style="font-size:.95rem;font-weight:700;color:#fff">Marco Bulgarini</div>
+      <div class="mono" style="font-size:.7rem;color:#7a8fa8;letter-spacing:.05em">CEO &amp; CHIEF ARCHITECT</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 2 · EL DILEMA DEL C-LEVEL
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s2" data-notes="Esta slide nombra la tensión que todo CEO en esta sala ya siente, aunque no la haya verbalizado: el Directorio le exige adoptar IA para no quedar atrás de la competencia, y el mismo Directorio le exige no exponer a la empresa a litigios o multas. Son dos mandatos que hoy se viven como contradictorios. El resto de esta presentación existe para demostrar que no lo son — que se puede resolver esa tensión con arquitectura, no con burocracia.">
+<div class="s-inner" style="display:flex;flex-direction:column;align-items:center;text-align:center">
+  <div class="s-label anim anim-d1">01 · La tensión actual</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(2.2rem,7vw,5.5rem);color:#fff;line-height:1;margin-bottom:1.5rem">
+    EL DILEMA<br>DEL <span style="color:var(--lime)">C-LEVEL.</span>
+  </h2>
+  <p class="anim anim-d3" style="font-size:clamp(1.05rem,2.4vw,1.4rem);color:#9aafc8;max-width:780px;line-height:1.7;margin-bottom:2rem">
+    Acelerar la innovación adoptando IA y arquitecturas SaaS, versus exponer a la compañía a fugas de datos, litigios legales y multas millonarias.
+  </p>
+
+  <div class="anim anim-d4 vs-grid" style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;max-width:680px;width:100%">
+    <div class="card card-lime" style="padding:1.25rem;text-align:center">
+      <div style="font-size:1.4rem;margin-bottom:.4rem">🚀</div>
+      <div style="font-size:.85rem;font-weight:700;color:#fff">Velocidad de Innovación</div>
+      <div style="font-size:.7rem;color:#9aafc8;margin-top:.3rem">Lo que el mercado exige</div>
+    </div>
+    <div class="display" style="font-size:1.8rem;color:#4a5a6e">VS</div>
+    <div class="card card-red" style="padding:1.25rem;text-align:center">
+      <div style="font-size:1.4rem;margin-bottom:.4rem">⚖️</div>
+      <div style="font-size:.85rem;font-weight:700;color:#fff">Exposición Legal</div>
+      <div style="font-size:.7rem;color:#9aafc8;margin-top:.3rem">Lo que el Directorio teme</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 3 · EL COSTO OCULTO (CON DATO IBM)
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s3" data-notes="Aquí es donde el dato de IBM cambia la conversación. No estamos hablando de un riesgo hipotético — el reporte anual de IBM, el más citado de la industria en seguridad, con dos décadas de historia y 600 incidentes reales analizados junto al Ponemon Institute, muestra que las brechas con Shadow AI cuestan en promedio 670 mil dólares más que una brecha estándar. Y el 63% de las organizaciones que sufrieron una brecha relacionada con IA no tenían ninguna política de gobernanza. Eso no es un problema técnico, es un pasivo contingente no declarado en el balance.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">02 · El riesgo cuantificado</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:.5rem">
+    EL COSTO OCULTO<br>DE LA IA <span style="color:var(--red)">SIN CONTROL.</span>
+  </h2>
+  <p class="anim anim-d2" style="font-size:.95rem;color:#9aafc8;max-width:680px;margin-bottom:1.75rem;line-height:1.7">
+    Adoptar modelos de lenguaje sin una capa de gobernanza técnica expone a la organización a pasivos que hoy son medibles, no hipotéticos.
+  </p>
+
+  <div class="anim anim-d3 card card-red" style="padding:1.5rem;margin-bottom:1.25rem">
+    <div class="s-label" style="margin-bottom:1rem">Sobrecosto promedio de una brecha con Shadow AI vs. una brecha estándar (USD)</div>
+    <div style="display:flex;align-items:flex-end;gap:2rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:#9aafc8">Brecha estándar</span>
+          <span class="mono" style="font-size:.85rem;color:#9aafc8;font-weight:700">$3.96M</span>
+        </div>
+        <div style="width:100%;height:14px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden">
+          <div style="width:85%;height:100%;background:#4a5a6e"></div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.4rem">
+          <span style="font-size:.78rem;color:#fff;font-weight:600">Con Shadow AI alto</span>
+          <span class="mono" style="font-size:.85rem;color:var(--red);font-weight:700">$4.63M</span>
+        </div>
+        <div style="width:100%;height:14px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden">
+          <div style="width:100%;height:100%;background:var(--red);box-shadow:0 0 8px rgba(255,60,60,.6)"></div>
+        </div>
+      </div>
+      <div class="display" style="font-size:2.2rem;color:var(--red);white-space:nowrap">+$670K</div>
+    </div>
+    <div class="cite" style="margin-top:.75rem">Fuente: IBM Cost of a Data Breach Report 2025, en conjunto con Ponemon Institute · 600 incidentes globales analizados</div>
+  </div>
+
+  <div class="anim anim-d4 grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem">
+    <div class="card" style="padding:1rem;border-left:3px solid var(--red)">
+      <div class="mono" style="font-size:.62rem;color:var(--red);letter-spacing:.08em;margin-bottom:.3rem">RIESGO LEGAL SEVERO</div>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.5">El incumplimiento de la Ley 21.719 expone directamente al Directorio a demandas civiles y penales.</p>
+    </div>
+    <div class="card" style="padding:1rem;border-left:3px solid var(--amber)">
+      <div class="mono" style="font-size:.62rem;color:var(--amber);letter-spacing:.08em;margin-bottom:.3rem">SANCIONES FINANCIERAS</div>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.5">Multas de hasta 20.000 UTM localmente, y porcentaje de facturación global bajo GDPR.</p>
+    </div>
+    <div class="card" style="padding:1rem;border-left:3px solid #7a8fa8">
+      <div class="mono" style="font-size:.62rem;color:#eaeff6;letter-spacing:.08em;margin-bottom:.3rem">63% SIN GOBERNANZA</div>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.5">De las empresas con brechas vinculadas a IA, ninguna política de gobernanza existía.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 4 · ROI Y MITIGACIÓN DE RIESGOS
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s4" data-notes="Esta es la slide que conecta el dato de IBM con nuestra propuesta de valor concreta. EAB-64 actúa como notario algorítmico: sella criptográficamente cada decisión de la IA en tiempo real. Eso invierte la carga de la prueba — en lugar de que la empresa tenga que demostrar que no fue negligente, el sistema genera la evidencia de cumplimiento de forma automática, en el momento del evento. El punto financiero clave: en lugar de pagar una auditoría forense post-incidente de cientos de miles de dólares, la organización ya tiene la evidencia lista, sin costo marginal por evento.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">03 · La respuesta arquitectónica</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:.5rem">
+    ROI Y MITIGACIÓN<br>DE <span style="color:var(--lime)">RIESGOS.</span>
+  </h2>
+
+  <div class="anim anim-d3 grid-2" style="display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;margin-bottom:1.25rem;align-items:center">
+    <div class="card card-lime" style="padding:2rem 1.5rem;text-align:center">
+      <div class="display" style="font-size:clamp(3.5rem,10vw,5.5rem);color:var(--lime);line-height:1">100<span style="font-size:.5em">%</span></div>
+      <div class="mono" style="font-size:.68rem;color:#9aafc8;letter-spacing:.1em;text-transform:uppercase;margin-top:.5rem">Evidencia Legal Criptográfica</div>
+    </div>
+    <div>
+      <h3 style="font-size:1.05rem;font-weight:700;color:var(--cyan);margin-bottom:.6rem">Transformando Riesgo en Certeza</h3>
+      <p style="font-size:.88rem;color:#9aafc8;line-height:1.65;margin-bottom:.75rem">EAB-64 actúa como un <strong style="color:#fff">"notario algorítmico"</strong> a nivel de infraestructura de red. Al sellar criptográficamente cada decisión que entra o sale de la IA en tiempo real, <strong style="color:#fff">invertimos la carga de la prueba</strong> en los tribunales.</p>
+    </div>
+  </div>
+
+  <div class="anim anim-d4 card" style="padding:1.1rem 1.5rem;border-left:3px solid var(--mint);background:rgba(0,255,170,.04)">
+    <p style="margin:0;font-size:.85rem;color:#d4dce8;line-height:1.55"><span style="color:var(--mint)">✓</span>&nbsp; En lugar de pagar costosas auditorías post-incidente, la organización genera evidencia inmutable al instante. Protegemos el EBITDA eliminando pasivos contingentes — el mismo tipo de pasivo que IBM valora en <strong style="color:#fff">+US$670K por incidente</strong> cuando no existe gobernanza.</p>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 5 · OPTIMIZANDO COSTOS HARDWARE/LLMS
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s5" data-notes="Esta slide habla directamente al CFO en la sala. Cuando un cliente ejerce el derecho al olvido, la respuesta tradicional de la industria es reentrenar el modelo completo — eso son meses de cómputo y millones de dólares en GPU. EAB-64 ofrece dos ventajas arquitectónicas: primero, el hash semántico mejora la velocidad de entrenamiento del modelo en sí. Segundo, y más importante para el CFO: Machine Unlearning intercepta la petición matemáticamente, sin tocar el modelo entrenado, ahorrando el 100% del costo de reentrenamiento por cumplimiento legal.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">04 · Eficiencia de capital</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.5rem">
+    OPTIMIZANDO COSTOS EN<br><span style="color:var(--lime)">HARDWARE Y LLMs.</span>
+  </h2>
+
+  <div class="anim anim-d3 grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+    <div class="card" style="padding:1.5rem">
+      <div class="mono" style="font-size:.62rem;color:#7a8fa8;letter-spacing:.1em;margin-bottom:.6rem">EL GASTO DEL "STATUS QUO"</div>
+      <p style="font-size:.85rem;color:#9aafc8;line-height:1.6;margin-bottom:.75rem">Cuando un cliente ejerce su <strong style="color:#fff">"Derecho al Olvido"</strong>, las empresas tradicionalmente deben reentrenar sus modelos enteros para asegurar la eliminación del dato.</p>
+      <p style="font-size:.85rem;color:#9aafc8;line-height:1.6">A esto se suma la ingesta masiva de datos no estructurados, consumiendo meses y <strong style="color:#fff">millones de dólares en horas de GPU en la nube</strong>.</p>
+    </div>
+    <div class="card card-lime" style="padding:1.5rem;background:rgba(184,255,0,.03)">
+      <div class="mono" style="font-size:.62rem;color:var(--lime);letter-spacing:.1em;margin-bottom:.6rem">LA VENTAJA ARQUITECTÓNICA EAB-64</div>
+      <p style="font-size:.85rem;color:#d4dce8;line-height:1.6;margin-bottom:.75rem"><strong style="color:#fff">1. Curriculum Learning Dinámico:</strong> al vectorizar los datos corporativos integrando el hash semántico de EAB-64, los modelos entrenan más rápido y con mayor precisión.</p>
+      <p style="font-size:.85rem;color:#d4dce8;line-height:1.6"><strong style="color:#fff">2. Machine Unlearning:</strong> EAB-64 intercepta las peticiones, garantizando matemáticamente que el dato olvidado no fluya a la inferencia — ahorrando el 100% del costo de reentrenamiento por cumplimiento legal.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 6 · VISIBILIDAD TOTAL: SHADOW AI (CON DATOS BLACKFOG/PRODUCTIV)
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s6" data-notes="Este es el dato más incómodo de toda la presentación, y por eso el más valioso para un CEO: no es solo que los empleados usen IA sin autorización. Según BlackFog, el 69% de los presidentes y miembros del C-suite encuestados está de acuerdo con que esto ocurra, priorizando velocidad sobre privacidad. Es decir, puede que el problema no esté solo tres niveles más abajo en el organigrama — puede estar en la misma sala donde se está dando esta presentación. El área de TI no puede asegurar lo que no puede ver, y según Productiv, la empresa promedio usa 14 herramientas de IA distintas, de las cuales TI conoce activamente solo 4 o 5.">
+<div class="s-inner" style="display:flex;flex-direction:column;align-items:center;text-align:center">
+  <div class="s-label anim anim-d1">05 · El punto ciego</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.25rem">
+    VISIBILIDAD TOTAL:<br><span style="color:var(--lime)">SHADOW AI Y SHADOW SAAS.</span>
+  </h2>
+  <p class="anim anim-d2" style="font-size:clamp(1rem,2.2vw,1.25rem);color:#9aafc8;max-width:780px;margin-bottom:1.75rem;line-height:1.7">
+    El área de TI no puede asegurar lo que no puede ver. EAB-64 descubre exactamente quién, cómo y dónde se está usando IA generativa no autorizada en su organización.
+  </p>
+
+  <div class="anim anim-d3 grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;width:100%;max-width:900px">
+    <div class="card card-amber" style="padding:1.25rem;text-align:center">
+      <div class="display" style="font-size:2.4rem;color:var(--amber)">49%</div>
+      <p style="font-size:.72rem;color:#9aafc8;margin-top:.4rem;line-height:1.4">de empleados usa IA no autorizada por su empleador</p>
+      <div class="cite" style="margin-top:.5rem">BlackFog / Sapio Research, nov. 2025</div>
+    </div>
+    <div class="card card-red" style="padding:1.25rem;text-align:center">
+      <div class="display" style="font-size:2.4rem;color:var(--red)">69%</div>
+      <p style="font-size:.72rem;color:#9aafc8;margin-top:.4rem;line-height:1.4">del C-suite y presidentes lo permite, priorizando velocidad sobre privacidad</p>
+      <div class="cite" style="margin-top:.5rem">BlackFog, vía CIO.com, 2026</div>
+    </div>
+    <div class="card" style="padding:1.25rem;text-align:center">
+      <div class="display" style="font-size:2.4rem;color:var(--cyan)">14 vs 5</div>
+      <p style="font-size:.72rem;color:#9aafc8;margin-top:.4rem;line-height:1.4">herramientas de IA en uso promedio · de las cuales TI conoce activamente</p>
+      <div class="cite" style="margin-top:.5rem">Productiv, 2026</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 7 · CONTROL ESTRATÉGICO DE PRESUPUESTO
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s7" data-notes="Esta es la secuencia operativa de tres pasos. Descubrir es el paso que más sorprende a un CFO, porque conecta directamente con el dato anterior de Productiv — la empresa promedio tiene 14 herramientas de IA y conoce solo un tercio de ellas. Planificar es donde el CIO recupera poder de negociación: cuando se conoce la demanda real, se puede centralizar licencias y eliminar gasto fantasma en suscripciones duplicadas. Proteger es el guardrail técnico final: bloquear la fuga de propiedad intelectual hacia servidores SaaS externos no auditados.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">06 · El proceso de tres pasos</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.5rem">
+    CONTROL <span style="color:var(--lime)">ESTRATÉGICO</span><br>DE PRESUPUESTO.
+  </h2>
+
+  <div class="anim anim-d3 grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem">
+    <div class="card" style="padding:1.5rem;text-align:center">
+      <div class="num" style="font-size:2.2rem;color:var(--cyan);opacity:1">01</div>
+      <div style="font-size:1.5rem;margin:.5rem 0">👁️</div>
+      <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.5rem">Descubrir</h3>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.55">EAB-64 mapea el uso de <strong style="color:#fff">Shadow AI</strong> y <strong style="color:#fff">Shadow SaaS</strong>, brindando visibilidad total a nivel de red.</p>
+    </div>
+    <div class="card" style="padding:1.5rem;text-align:center">
+      <div class="num" style="font-size:2.2rem;color:var(--mint);opacity:1">02</div>
+      <div style="font-size:1.5rem;margin:.5rem 0">📊</div>
+      <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.5rem">Planificar</h3>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.55">El CIO centraliza licencias, negocia contratos B2B agresivos y elimina Opex en suscripciones fantasma.</p>
+    </div>
+    <div class="card" style="padding:1.5rem;text-align:center">
+      <div class="num" style="font-size:2.2rem;color:var(--red);opacity:1">03</div>
+      <div style="font-size:1.5rem;margin:.5rem 0">🛡️</div>
+      <h3 style="font-size:.95rem;font-weight:700;color:#fff;margin-bottom:.5rem">Proteger</h3>
+      <p style="font-size:.78rem;color:#9aafc8;line-height:1.55">Aplica guardrails: intercepta y bloquea la fuga de propiedad intelectual hacia SaaS externos no auditados.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 8 · TABLA COMPARATIVA
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s8" data-notes="Esta tabla resume todo en cuatro filas que un Directorio puede leer en treinta segundos. La columna del medio — auditoría consultiva tradicional — es la trampa en la que caen la mayoría de las empresas: gastan en consultoría pero siguen post-incidente, siguen con evidencia subjetiva en PDF, y de hecho frenan el despliegue por meses mientras esperan el informe. EAB-64 es la única columna donde las cuatro filas están en verde.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">07 · La comparación directa</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.5rem">
+    EAB-64 VS. <span style="color:var(--lime)">STATUS QUO.</span>
+  </h2>
+
+  <div class="anim anim-d3 card" style="overflow-x:auto">
+    <table class="reg-table" style="min-width:680px">
+      <thead>
+        <tr>
+          <th>Métrica Directiva</th>
+          <th>Sin Gobernanza</th>
+          <th>Auditoría Consultiva</th>
+          <th style="color:var(--lime)">Plataforma EAB-64</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:700;color:#fff">Riesgo Legal / Directorio</td>
+          <td style="color:var(--red)">Extremo (fugas activas)</td>
+          <td style="color:var(--amber)">Moderado (post-incidente)</td>
+          <td style="color:var(--mint);font-weight:700">Neutralizado (prevención L7)</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:#fff">Gasto en Hardware (GPU)</td>
+          <td style="color:var(--red)">Máximo (reentrenamientos)</td>
+          <td style="color:var(--amber)">Alto (silos de datos)</td>
+          <td style="color:var(--mint);font-weight:700">Optimizado (vectores hash)</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:#fff">Latencia Operativa</td>
+          <td style="color:var(--mint)">Baja</td>
+          <td style="color:var(--red)">Frena el despliegue meses</td>
+          <td style="color:var(--mint);font-weight:700">&lt; 2ms (zero-allocation)</td>
+        </tr>
+        <tr>
+          <td style="font-weight:700;color:#fff">Tipo de Evidencia</td>
+          <td style="color:var(--red)">Inexistente</td>
+          <td style="color:var(--amber)">Subjetiva / documental PDF</td>
+          <td style="color:var(--mint);font-weight:700">Matemática (criptografía)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 9 · UN HABILITADOR GLOBAL
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s9" data-notes="Esta slide cambia el framing de EAB-64 de costo a inversión estratégica. No es un freno regulatorio — es un pasaporte. Cumplir por diseño con el EU AI Act, el GDPR y las normativas de Banca Abierta simultáneamente significa que la empresa puede expandirse a mercados hiper-regulados sin tener que rediseñar su stack de cumplimiento país por país. Eso es velocidad de expansión, que es exactamente lo que un CEO en modo de crecimiento necesita escuchar.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">08 · La oportunidad de expansión</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.25rem">
+    UN HABILITADOR<br><span style="color:var(--lime)">GLOBAL.</span>
+  </h2>
+  <p class="anim anim-d2" style="font-size:.92rem;color:#9aafc8;max-width:660px;margin-bottom:1.5rem;line-height:1.7">
+    EAB-64 no es un freno, es un pasaporte. Operar con evidencia criptográfica posiciona a su empresa para cumplir por diseño (<em>compliance-by-design</em>) y habilita la expansión inmediata hacia mercados hiper-regulados.
+  </p>
+
+  <div class="anim anim-d3 card card-lime" style="padding:1.5rem;margin-bottom:1rem;overflow-x:auto">
+    <svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:600px;font-family:'IBM Plex Mono',monospace">
+      <!-- Simplified world network -->
+      <ellipse cx="450" cy="110" rx="380" ry="95" fill="none" stroke="rgba(184,255,0,.15)" stroke-width="1"/>
+      <ellipse cx="450" cy="110" rx="380" ry="95" fill="none" stroke="rgba(184,255,0,.08)" stroke-width="1" transform="rotate(35 450 110)"/>
+      <ellipse cx="450" cy="110" rx="380" ry="95" fill="none" stroke="rgba(184,255,0,.08)" stroke-width="1" transform="rotate(-35 450 110)"/>
+      <circle cx="450" cy="110" r="3" fill="#b8ff00"/>
+
+      <!-- Nodes: Chile, EU, Open Finance -->
+      <circle cx="180" cy="70" r="6" fill="#00e5ff"/>
+      <line x1="450" y1="110" x2="180" y2="70" stroke="rgba(0,229,255,.4)" stroke-width="1.5"/>
+      <text x="180" y="50" text-anchor="middle" fill="#00e5ff" font-size="11" font-weight="700">CHILE</text>
+      <text x="180" y="95" text-anchor="middle" fill="#7a8fa8" font-size="8">Ley 21.719</text>
+
+      <circle cx="700" cy="70" r="6" fill="#b8ff00"/>
+      <line x1="450" y1="110" x2="700" y2="70" stroke="rgba(184,255,0,.4)" stroke-width="1.5"/>
+      <text x="700" y="50" text-anchor="middle" fill="#b8ff00" font-size="11" font-weight="700">UNIÓN EUROPEA</text>
+      <text x="700" y="95" text-anchor="middle" fill="#7a8fa8" font-size="8">EU AI Act · GDPR</text>
+
+      <circle cx="280" cy="170" r="6" fill="#f5b400"/>
+      <line x1="450" y1="110" x2="280" y2="170" stroke="rgba(245,180,0,.4)" stroke-width="1.5"/>
+      <text x="280" y="195" text-anchor="middle" fill="#f5b400" font-size="11" font-weight="700">BANCA ABIERTA</text>
+      <text x="280" y="150" text-anchor="middle" fill="#7a8fa8" font-size="8">Open Finance</text>
+
+      <circle cx="640" cy="170" r="6" fill="#ff3c3c"/>
+      <line x1="450" y1="110" x2="640" y2="170" stroke="rgba(255,60,60,.4)" stroke-width="1.5"/>
+      <text x="640" y="195" text-anchor="middle" fill="#ff3c3c" font-size="11" font-weight="700">MERCADOS GLOBALES</text>
+      <text x="640" y="150" text-anchor="middle" fill="#7a8fa8" font-size="8">Multi-jurisdicción</text>
+
+      <text x="450" y="135" text-anchor="middle" fill="#b8ff00" font-size="9" font-weight="700">EAB-64</text>
+    </svg>
+  </div>
+
+  <div class="anim anim-d4 grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem">
+    <span class="tag tag-cyan" style="justify-content:center;padding:.6rem">EU AI Act</span>
+    <span class="tag tag-lime" style="justify-content:center;padding:.6rem">GDPR</span>
+    <span class="tag tag-amber" style="justify-content:center;padding:.6rem">Open Finance</span>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 10 · PROYECCIÓN DE AHORROS
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s10" data-notes="Esta proyección no es especulativa: combina la optimización de Opex en Cloud por el lado de Machine Unlearning con la eliminación del pasivo contingente que cuantificó IBM. El punto de inflexión real ocurre entre el mes 6 y el año 1, cuando la organización ya evitó su primer ciclo de reentrenamiento y su primera auditoría post-incidente evitada empieza a sumar.">
+<div class="s-inner">
+  <div class="s-label anim anim-d1">09 · La proyección financiera</div>
+  <h2 class="display anim anim-d2" style="font-size:clamp(1.9rem,5.5vw,4.2rem);color:#fff;line-height:1;margin-bottom:1.5rem">
+    PROYECCIÓN DE<br><span style="color:var(--lime)">AHORROS ECONÓMICOS.</span>
+  </h2>
+
+  <div class="anim anim-d3 card" style="padding:1.5rem;overflow-x:auto">
+    <svg viewBox="0 0 1000 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:640px;font-family:'IBM Plex Mono',monospace">
+      <defs>
+        <linearGradient id="area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#b8ff00" stop-opacity="0.35"/>
+          <stop offset="100%" stop-color="#b8ff00" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <g stroke="#1e2d40" stroke-width="1" stroke-dasharray="4 4">
+        <line x1="100" y1="50" x2="950" y2="50"/>
+        <line x1="100" y1="125" x2="950" y2="125"/>
+        <line x1="100" y1="200" x2="950" y2="200"/>
+      </g>
+      <line x1="100" y1="275" x2="950" y2="275" stroke="#334155" stroke-width="2"/>
+
+      <path d="M 100 275 L 300 220 L 500 150 L 700 80 L 900 40 L 900 275 Z" fill="url(#area-grad)"/>
+      <polyline points="100,275 300,220 500,150 700,80 900,40" fill="none" stroke="#b8ff00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <g>
+        <circle cx="100" cy="275" r="6" fill="#04091a" stroke="#b8ff00" stroke-width="3"/>
+        <circle cx="300" cy="220" r="6" fill="#04091a" stroke="#b8ff00" stroke-width="3"/>
+        <circle cx="500" cy="150" r="6" fill="#04091a" stroke="#b8ff00" stroke-width="3"/>
+        <circle cx="700" cy="80" r="6" fill="#04091a" stroke="#b8ff00" stroke-width="3"/>
+        <circle cx="900" cy="40" r="6" fill="#04091a" stroke="#b8ff00" stroke-width="3"/>
+      </g>
+
+      <g fill="#7a8fa8" font-size="13" text-anchor="end">
+        <text x="80" y="55">+$2M</text>
+        <text x="80" y="130">+$1M</text>
+        <text x="80" y="205">+$500k</text>
+        <text x="80" y="280">0</text>
+      </g>
+      <g fill="#7a8fa8" font-size="13" text-anchor="middle">
+        <text x="100" y="305">Piloto</text>
+        <text x="300" y="305">Mes 6</text>
+        <text x="500" y="305">Año 1</text>
+        <text x="700" y="305">Año 2</text>
+        <text x="900" y="305">Año 3</text>
+      </g>
+      <text x="525" y="332" text-anchor="middle" fill="#eaeff6" font-size="13" font-weight="700">Ahorro Acumulado (USD) · Optimización Opex Cloud y Cero Siniestros Legales</text>
+    </svg>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SLIDE 11 · Q&A / CONTACTO
+═══════════════════════════════════════════════════════════ -->
+<section class="slide" id="s11" data-notes="Cierro volviendo al punto de partida: el futuro de la IA empresarial es auditable, no opcional. La pregunta que quiero dejar en la sala no es si van a adoptar gobernanza de IA, sino si la van a construir antes o después de su primer incidente de 670 mil dólares.">
+<div class="s-inner" style="display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center">
+
+  <div class="anim anim-d1" style="margin-bottom:1.5rem">
+    <svg width="260" height="52" viewBox="0 0 220 44" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="44" height="44" rx="3" fill="rgba(184,255,0,0.08)" stroke="#b8ff00" stroke-width="1"/>
+      <text x="22" y="30" text-anchor="middle" font-family="'Bebas Neue',cursive" font-size="22" fill="#b8ff00" letter-spacing="1">RL</text>
+      <text x="56" y="18" font-family="'Bebas Neue',cursive" font-size="20" fill="#ffffff" letter-spacing="2">ROSETTA</text>
+      <text x="56" y="38" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#b8ff00" letter-spacing="3">LABS</text>
+    </svg>
+  </div>
+
+  <p class="anim anim-d2" style="font-size:clamp(1.1rem,2.6vw,1.5rem);color:var(--cyan);font-weight:700;margin-bottom:2.5rem">
+    El futuro de la IA empresarial es auditable.
+  </p>
+
+  <div class="anim anim-d3 card card-lime" style="padding:1.5rem 2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;justify-content:center">
+    <div style="width:64px;height:64px;border-radius:9999px;background:rgba(245,180,0,.12);border:2px solid rgba(245,180,0,.4);display:flex;align-items:center;justify-content:center;font-size:1.8rem">👤</div>
+    <div style="text-align:left">
+      <h4 style="font-size:1.15rem;color:#fff;margin-bottom:.2rem">Marco Bulgarini Torres</h4>
+      <p style="font-size:.85rem;color:#9aafc8;margin-bottom:.5rem">CEO &amp; Chief Architect</p>
+      <a href="https://linkedin.com/in/marco-bulgarini-torres-918a34249" target="_blank" style="color:var(--cyan);text-decoration:none;font-weight:700;font-size:.85rem">in/marco-bulgarini-torres → Conectar en LinkedIn</a>
+    </div>
+  </div>
+
+  <div class="anim anim-d5" style="margin-top:2rem">
+    <p class="mono" style="font-size:.62rem;color:#2a3a4a;letter-spacing:.08em">
+      PROTOCOLO EAB-64 · ROSETTA LABS · SHA-256 · Ed25519 · MERKLE TREE
+    </p>
+  </div>
+</div>
+</section>
+
+<!-- ─── FLOAT BTN ─── -->
+<button type="button" id="float-btn">SIGUIENTE →</button>
+
+<!-- ─── NOTES PANEL ─── -->
+<div id="notes-panel">
+  <div class="nl">
+    <span>🎙 Pitch del Relator</span>
+    <button type="button" id="btn-close-notes" aria-label="Cerrar">✕</button>
+  </div>
+  <p id="speaker-notes-text">Cargando notas...</p>
+</div>
+
+<!-- ─── NAV ─── -->
+<div id="nav-bar">
+  <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0">
+    <svg width="18" height="18" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="44" height="44" rx="6" fill="rgba(184,255,0,0.08)" stroke="#b8ff00" stroke-width="1.5"/>
+      <text x="22" y="30" text-anchor="middle" font-family="'Bebas Neue',cursive" font-size="22" fill="#b8ff00">RL</text>
+    </svg>
+    <span class="mono hide-sm" style="font-size:.6rem;color:#2a3a4a;letter-spacing:.12em">
+      <span style="color:#f5b400;font-weight:600">ROSETTA LABS</span> · <span style="color:var(--lime)">EAB-64</span>
+    </span>
+  </div>
+  <div id="dots-wrap"></div>
+  <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+    <button type="button" id="btn-notes" aria-label="Ver notas del relator">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+      <span class="hide-sm">Pitch</span>
+    </button>
+    <button type="button" class="nav-btn" id="btn-prev" aria-label="Anterior">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <span class="mono" id="slide-counter">1 / 11</span>
+    <button type="button" class="nav-btn" id="btn-next" aria-label="Siguiente">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const chars='0123456789abcdef';
+  let s='';
+  for(let i=0;i<4000;i++)s+=chars[Math.floor(Math.random()*16)];
+  const inner=document.getElementById('hash-inner');
+  inner.textContent=s;
+  inner.innerHTML+=inner.innerHTML;
+})();
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const slides=[...document.querySelectorAll('.slide')];
+  const btnP=document.getElementById('btn-prev');
+  const btnN=document.getElementById('btn-next');
+  const ctr=document.getElementById('slide-counter');
+  const dotsW=document.getElementById('dots-wrap');
+  const floatB=document.getElementById('float-btn');
+  const notesPanel=document.getElementById('notes-panel');
+  const btnNotes=document.getElementById('btn-notes');
+  const btnCloseNotes=document.getElementById('btn-close-notes');
+  const notesText=document.getElementById('speaker-notes-text');
+  const total=slides.length;
+  let cur=0;
+  let tSkip=false;
+
+  slides.forEach((_,i)=>{
+    const d=document.createElement('button');
+    d.type='button';
+    d.className='dot'+(i===0?' active':'');
+    d.setAttribute('aria-label',`Slide ${i+1}`);
+    d.onclick=()=>go(i);
+    dotsW.appendChild(d);
+  });
+
+  function updateDots(){
+    dotsW.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===cur));
+  }
+
+  function checkFloat(){
+    if(cur>=total-1){floatB.classList.remove('show');return;}
+    const sl=slides[cur];
+    floatB.classList.toggle('show',sl&&sl.scrollHeight>sl.clientHeight+10);
+  }
+
+  function go(n){
+    slides[cur].classList.remove('active');
+    cur=Math.max(0,Math.min(total-1,n));
+    slides[cur].classList.add('active');
+    slides[cur].scrollTop=0;
+    ctr.textContent=`${cur+1} / ${total}`;
+    btnP.disabled=cur===0;
+    btnN.disabled=cur===total-1;
+    updateDots();
+    notesText.textContent=slides[cur].getAttribute('data-notes')||'Sin notas para este slide.';
+    floatB.style.background='';
+    floatB.style.color='';
+    setTimeout(checkFloat,120);
+  }
+
+  slides.forEach(sl=>{
+    sl.addEventListener('scroll',()=>{
+      if(sl!==slides[cur])return;
+      const atBot=sl.scrollTop+sl.clientHeight>=sl.scrollHeight-24;
+      floatB.style.background=atBot?'rgba(184,255,0,.25)':'';
+    },{passive:true});
+  });
+
+  floatB.onclick=()=>go(cur+1);
+  btnN.onclick=()=>go(cur+1);
+  btnP.onclick=()=>go(cur-1);
+  btnNotes.onclick=()=>notesPanel.classList.toggle('open');
+  btnCloseNotes.onclick=()=>notesPanel.classList.remove('open');
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(cur+1);}
+    if(e.key==='ArrowLeft')go(cur-1);
+    if(e.key==='Escape')notesPanel.classList.remove('open');
+    if(e.key==='n'||e.key==='N')notesPanel.classList.toggle('open');
+  });
+
+  document.addEventListener('touchstart',e=>{
+    window.__tx=e.changedTouches[0].clientX;window.__ty=e.changedTouches[0].clientY;
+    const hScroll=e.target.closest('[style*="overflow-x:auto"]');
+    tSkip=!!(hScroll&&hScroll.scrollWidth>hScroll.clientWidth);
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(notesPanel.classList.contains('open')||tSkip)return;
+    const dx=e.changedTouches[0].clientX-window.__tx;
+    const dy=Math.abs(e.changedTouches[0].clientY-window.__ty);
+    if(Math.abs(dx)>55&&Math.abs(dx)>dy*1.5){dx<0?go(cur+1):go(cur-1);}
+  },{passive:true});
+
+  window.addEventListener('resize',()=>setTimeout(checkFloat,150),{passive:true});
+  go(0);
+});
+</script>
+</body>
+</html>
